@@ -1,0 +1,19 @@
+{
+  "name": "onedrive-index-cloudflare-worker",
+  "version": "1.0.0",
+  "description": "OneDrive Index ( Cloudflare Worker )",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heymind/OneDrive-Index-Cloudflare-Worker.git"
+  },
+  "author": "Heymind",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/heymind/OneDrive-Index-Cloudflare-Worker/issues"
+  },
+  "homepage": "https://github.com/heymind/OneDrive-Index-Cloudflare-Worker#readme"
+}
