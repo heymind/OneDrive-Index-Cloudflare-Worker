@@ -4,10 +4,10 @@ const config = {
      * You can use this tool http://heymind.github.io/tools/microsoft-graph-api-auth
      * to get following params: client_id, client_secret, refresh_token & redirect_uri.
      */
-    "refresh_token": "MCceflN69VEvziEZwmcdbPUbyBVM2*wbbDVt6EAPnRjjWieOdEg31xBo*K0jNEwMjimTU5SwDIRPs6j*FJH4tmhDk4vO8hzpm65bTdFxUBUDp1E9OuAGTfauJWrSoSLMA1oNgR0LU2nwqh0!10ZplNUFXp7cvrcXA8ub*Lyrr1Dl*EGBu38NDPmVE5Krrkvig2BMETHe87MMms4g73Nf2jTJDsL9bR79Jho!OTtPRVUA4wqf*Sds291gGF2gDllXi9YYZ2AdYGHszC*QI8YzzT9!Uu9Em3EwwpfOrCVgOlvOinB9TD6aQkTT63hKwRdzb9eHTwRABeq3rQM4vaXLNOcjROzAsoDCPs82rVXx2Z5wIO0kAuffR0uV9eP27ZdwsI53y*x6RCj*ICHVCBTlkekk$",
-    "client_id": "3c88ac69-92b2-49b8-9390-8ae53961d811",
-    "client_secret": "L@LZ15=rI@lFDsjIVzZ1Mea]Mbma9[L2",
-    "redirect_uri": "https://auth.frps.idx0.dev/auth",
+    "refresh_token": "",
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": "",
     /**
      * The base path for indexing, all files and subfolders are public by this tool. For example `/Share`.
      */
@@ -126,12 +126,12 @@ function renderFolderIndex(items, isIndex) {
                 return item(mime2icon(i.file.mimeType), i.name)
             } else console.log(`unknown item type ${i}`)
         }).join("")
-    )), getStyleSheet());
+    )));
 }
 
 
 
-function renderHTML(body, style) {
+function renderHTML(body) {
     return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -139,10 +139,10 @@ function renderHTML(body, style) {
       <meta http-equiv="x-ua-compatible" content="ie=edge, chrome=1" />
       <title>OneDrive Index</title>
       <link href='https://fonts.loli.net/icon?family=Material+Icons' rel='stylesheet'>
-      <style>${style}</style>
+      <link href='https://cdn.jsdelivr.net/gh/heymind/OneDrive-Index-Cloudflare-Worker/themes/material.css' rel='stylesheet'>
     </head>
     <body>
-      ${body}
+        ${body}
       <div style="flex-grow:1"></div>
       <footer><p>Powered by <a href="https://github.com/heymind/OneDrive-Index-Cloudflare-Worker">OneDrive-Index-CF</a>, hosted on <a href="https://www.cloudflare.com/products/cloudflare-workers/">Cloudflare Workers</a>.</p></footer>
     </body>
