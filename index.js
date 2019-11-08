@@ -67,7 +67,6 @@ async function handleRequest(request) {
     } = new URL(request.url);
 
     const url = `https://graph.microsoft.com/v1.0/me/drive/root:${base+(pathname == "/" ? "" :pathname) }?select=name,eTag,size,id,folder,file,%40microsoft.graph.downloadUrl&expand=children(select%3Dname,eTag,size,id,folder,file)`;
-    console.log(url)
     const resp = await fetch(url, {
         headers: {
             "Authorization": `bearer ${accessToken}`
@@ -88,6 +87,7 @@ async function handleRequest(request) {
             if (!request.url.endsWith("/")) return Response.redirect(request.url + "/", 302)
             return new Response(renderFolderIndex(data.children, pathname == "/"), {
                 headers: {
+                   'Access-Control-Allow-Origin':'*',
                     'content-type': 'text/html'
                 }
             });
@@ -95,15 +95,28 @@ async function handleRequest(request) {
             error = `unknown data ${JSON.stringify(data)}`;
         }
     } else {
-        error = `ok == false ${JSON.stringify(await resp.json())}`;
+        error = (await resp.json()).error;
     }
 
     if (error) {
-        return new Response(error, {
+      const body = JSON.stringify(error);
+      switch(error.code){
+        case "ItemNotFound":
+          return new Response(body, {
+              status:404,
             headers: {
-                'content-type': 'text/html'
+                'content-type': 'application/json'
             }
-        });
+          });
+        default:
+          return new Response(body, {
+              status:500,
+            headers: {
+                'content-type': 'application/json'
+            }
+          });
+      }
+ 
     }
 }
 /**
@@ -115,36 +128,41 @@ function renderFolderIndex(items, isIndex) {
     const nav = `<nav><a class="brand">OneDrive Index</a></nav>`;
     const el = (tag, attrs, content) => `<${tag} ${attrs.join(" ")}>${content}</${tag}>`;
     const div = (className, content) => el("div", [`class=${className}`], content);
-    const item = (icon, filename) => el("a", [`href="${filename}"`, `class="item"`], el("i", [`class="material-icons"`], icon) + filename)
+    const item = (icon, filename,size) => el("a", [`href="${filename}"`, `class="item"`,size?`size="${size}"`:""], el("i", [`class="material-icons"`], icon) + filename)
 
-    return renderHTML(nav + div("container", div("items",
+    return renderHTML(nav + div("container",div("items", el("div",['style="min-width:600px"'],
         (!isIndex ? item("folder", "..") : "") +
         items.map((i) => {
             if ("folder" in i) {
-                return item("folder", i.name)
+                return item("folder", i.name,i.size)
             } else if ("file" in i) {
-                return item(mime2icon(i.file.mimeType), i.name)
+                return item(mime2icon(i.file.mimeType), i.name,i.size)
             } else console.log(`unknown item type ${i}`)
         }).join("")
-    )));
+    ))));
 }
 
 
 
-function renderHTML(body) {
+function renderHTML(body ) {
     return `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="utf-8" />
       <meta http-equiv="x-ua-compatible" content="ie=edge, chrome=1" />
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
       <title>OneDrive Index</title>
       <link href='https://fonts.loli.net/icon?family=Material+Icons' rel='stylesheet'>
       <link href='https://cdn.jsdelivr.net/gh/heymind/OneDrive-Index-Cloudflare-Worker/themes/material.css' rel='stylesheet'>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.17.1/themes/prism-solarizedlight.css">
+      <script type="module" src='https://cdn.jsdelivr.net/gh/heymind/OneDrive-Index-Cloudflare-Worker/script.js'></script>
     </head>
     <body>
-        ${body}
+      ${body}
       <div style="flex-grow:1"></div>
       <footer><p>Powered by <a href="https://github.com/heymind/OneDrive-Index-Cloudflare-Worker">OneDrive-Index-CF</a>, hosted on <a href="https://www.cloudflare.com/products/cloudflare-workers/">Cloudflare Workers</a>.</p></footer>
+      <script src="https://cdn.jsdelivr.net/npm/prismjs@1.17.1/prism.min.js" data-manual></script>
+      <script src="https://cdn.jsdelivr.net/npm/prismjs@1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
     </body>
   </html>`
 }
