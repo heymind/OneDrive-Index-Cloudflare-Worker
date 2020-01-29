@@ -39,7 +39,10 @@ https://storage.idx0.workers.dev/Other/zero_file?proxied
 
 在配置中开启 `upload` 功能，并设置一个密钥 `key` ( 防止游客上传文件 )。
 
-比如： POST https://storage.idx0.workers.dev/Images/?upload=<filename>&key=<key>
+比如： 
+```
+POST https://storage.idx0.workers.dev/Images/?upload=<filename>&key=<key>
+```
 
 **注意：开启该功能需要 `Files.ReadWrite` 权限**
 
