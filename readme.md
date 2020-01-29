@@ -17,7 +17,7 @@
 
 5. 在 `Cloudflare Worker` 管理页面创建一个新的 `Worker` ,粘贴 `index.js` 中的代码并替换相关参数。
 
-## 🔥新特性 V1.1
+## 🔥 新特性 V1.1
 
 ### ⏬ 中转下载 
 利用 `Cloudflare` 服务器中转 `OneDrive` 中文件的下载，以提高中国大陆的下载体验。已知问题，无法显示下载进度。
@@ -27,14 +27,14 @@ https://storage.idx0.workers.dev/Other/zero_file?proxied
 
 ( Cloudflare 的速度也挺随缘的... )
 
-### ☁️缓存功能
+### ☁️ 缓存功能
 利用 `Cloudflare CDN` 来缓存 `OneDrive` 中文件，目前有两种缓存模式：
 - 整个文件缓存： 文件会先完整传输到 `Cloudflare` 的服务器后再返回给客户端。文件太大可能超过 `Cloudflare Worker` 限制的单次请求运行时间。
 - chunk 缓存： 流式传输与缓存，无法正确显示 `Content-Length`。
 
 在配置中开启 `cache` 功能，可以配置两种缓存模式的选择以及启用缓存的路径地址。
 
-### ⏫小文件上传
+### ⏫ 小文件上传
 可以利用这个工具直接上传小文件到 `OneDrive` 上 ( 小于 4MB ，OneDrive API 的限制，比这个大就得创建 upload session 反正很麻烦 )
 
 在配置中开启 `upload` 功能，并设置一个密钥 `key` ( 防止游客上传文件 )。
@@ -43,7 +43,7 @@ https://storage.idx0.workers.dev/Other/zero_file?proxied
 
 **注意：开启该功能需要 `Files.ReadWrite` 权限**
 
-### 🖼️缩略图
+### 🖼️ 缩略图
 对于图片文件，可以直接获取不同尺寸的缩略图。
 比如：https://storage.idx0.workers.dev/Images/public-md-image-20191010113652775.png?thumbnail=mediumSquare
 
