@@ -39,7 +39,7 @@ https://storage.idx0.workers.dev/Other/zero_file?proxied
 
 在配置中开启 `upload` 功能，并设置一个密钥 `key` ( 防止游客上传文件 )。
 
-比如： POST https://storage.idx0.workers.dev/Images/?upload=<filename&key=<key>
+比如： POST https://storage.idx0.workers.dev/Images/?upload=<filename>&key=<key>
 
 **注意：开启该功能需要 `Files.ReadWrite` 权限**
 
@@ -57,4 +57,4 @@ https://storage.idx0.workers.dev/Other/zero_file?proxied
 同时开启**缓存功能**和**小文件上传功能**后，这就是个自建图床。
 配合**缩略图**功能，亦可提升博客页面在不同场景下的加载体验。
 
-例如 (https://blog.idx0.dev)[https://blog.idx0.dev/] 在首页文章列表配图使使用了 `large` 尺寸的缩略图，在侧栏文章列表中使用了 `smallSquare` 尺寸的缩略图。
+例如 https://blog.idx0.dev 在首页文章列表配图使使用了 `large` 尺寸的缩略图，在侧栏文章列表中使用了 `smallSquare` 尺寸的缩略图。
