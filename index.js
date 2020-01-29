@@ -1,4 +1,3 @@
-
 const config = {
     /**
      * You can use this tool http://heymind.github.io/tools/microsoft-graph-api-auth
@@ -7,11 +6,56 @@ const config = {
     "refresh_token": "",
     "client_id": "",
     "client_secret": "",
-    "redirect_uri": "",
+    "redirect_uri": "https://heymind.github.io/tools/microsoft-graph-api-auth",
     /**
      * The base path for indexing, all files and subfolders are public by this tool. For example `/Share`.
      */
-    "base": ""
+    base: "/Share",
+    /**
+     * Feature Caching
+     * Enable Cloudflare cache for path pattern listed below.
+     * Cache rules:
+     * - Entire File Cache  0 < file_size < entireFileCacheLimit
+     * - Chunked Cache     entireFileCacheLimit  <= file_size < chunkedCacheLimit
+     * - No Cache ( redirect to OneDrive Server )   others
+     * 
+     * Difference between `Entire File Cache` and `Chunked Cache`
+     * 
+     * `Entire File Cache` requires the entire file to be transferred to the Cloudflare server before 
+     *  the first byte sent to a client.
+     * 
+     * `Chunked Cache` would stream the file content to the client while caching it.
+     *  But there is no exact Content-Length in the response headers. ( Content-Length: chunked )
+     * 
+     */
+    "cache": {
+        "enable": false,
+        "entireFileCacheLimit": 10000000, // 10MB
+        "chunkedCacheLimit": 100000000, // 100MB 
+        "paths": ["/Images"]
+    },
+    /**
+     * Feature Thumbnail
+     * Show a thumbnail of image by ?thumbnail=small (small,medium,large)
+     * more details: https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_list_thumbnails?view=odsp-graph-online#size-options
+     * example: https://storage.idx0.workers.dev/Images/def.png?thumbnail=mediumSquare
+     *  
+     */
+    "thumbnail": true,
+    /**
+     * Small File Upload ( <= 4MB )
+     * example: POST https://storage.idx0.workers.dev/Images/?upload=<filename>&key=<secret_key>
+     */
+    "upload": {
+        "enable": false,
+        "key": "your_secret_1key_here"
+    },
+    /**
+     * Feature Proxy Download
+     * Use Cloudflare as a relay to speed up download. ( especially in Mainland China )
+     * example: https://storage.idx0.workers.dev/Images/def.png?proxied
+     */
+    "proxyDownload": true,
 };
 
 addEventListener('fetch', event => {
@@ -22,6 +66,11 @@ addEventListener('fetch', event => {
  * Current access token 
  */
 let _accessToken = null;
+
+/**
+ * Cloudflare cache instance
+ */
+let cache = caches.default;
 
 /**
  * Get access token for microsoft graph API endpoints. Refresh token if needed.
@@ -37,7 +86,7 @@ async function getAccessToken() {
         }
     });
     if (resp.ok) {
-        console.log("access_token refresh success.")
+        console.info("access_token refresh success.")
         const data = await resp.json()
         _accessToken = data.access_token
         return _accessToken;
@@ -58,13 +107,137 @@ function mime2icon(type) {
     return "description";
 }
 
+/**
+ * Cache downloadUrl according to caching rules.
+ * @param {Request} request client's request 
+ * @param {integer} fileSize 
+ * @param {string} downloadUrl 
+ * @param {function} fallback handle function if the rules is not satisfied
+ */
+async function setCache(request, fileSize, downloadUrl, fallback) {
+    if (fileSize < config.cache.entireFileCacheLimit) {
+        console.info(`Cache entire file ${request.url}`);
+        const remoteResp = await fetch(downloadUrl);
+        const resp = new Response(remoteResp.body, {
+            headers: {
+                "Content-Type": remoteResp.headers.get("Content-Type"),
+                "ETag": remoteResp.headers.get("ETag"),
+            },
+            status: remoteResp.status,
+            statusText: remoteResp.statusText,
+        });
+        await cache.put(request, resp.clone());
+        return resp;
+
+    } else if (fileSize < config.cache.chunkedCacheLimit) {
+        console.info(`Chunk cache file ${request.url}`);
+        const remoteResp = await fetch(downloadUrl);
+        let {
+            readable,
+            writable
+        } = new TransformStream();
+        remoteResp.body.pipeTo(writable);
+        const resp = new Response(readable, {
+            headers: {
+                "Content-Type": remoteResp.headers.get("Content-Type"),
+                "ETag": remoteResp.headers.get("ETag")
+            },
+            status: remoteResp.status,
+            statusText: remoteResp.statusText
+        });
+        await cache.put(request, resp.clone());
+        return resp;
+
+    } else {
+        console.info(`No cache ${request.url} because file_size(${fileSize}) > limit(${chunkedCacheLimit})`);
+        return await fallback(downloadUrl);
+    }
+}
+/**
+ * Redirect to the download url.
+ * @param {string} downloadUrl 
+ */
+async function directDownload(downloadUrl) {
+    console.info(`DirectDownload -> ${downloadUrl}`);
+    return new Response(null, {
+        status: 302,
+        headers: {
+            "Location": downloadUrl.slice(6)
+        }
+    });
+}
+/**
+ * Download a file using Cloudflare as a relay.
+ * @param {string} downloadUrl 
+ */
+async function proxiedDownload(downloadUrl) {
+    console.info(`ProxyDownload -> ${downloadUrl}`);
+    const remoteResp = await fetch(downloadUrl);
+    let {
+        readable,
+        writable
+    } = new TransformStream();
+    remoteResp.body.pipeTo(writable);
+    return new Response(readable, remoteResp);
+}
+
+
+async function handleFile(request, pathname, downloadUrl, {
+    proxied = false,
+    fileSize = 0
+}) {
+    if (config.cache && config.cache.enable &&
+        config.cache.paths.filter(p => pathname.startsWith(p)).length > 0) {
+        return setCache(request, fileSize, downloadUrl, proxied ? proxiedDownload : directDownload);
+    }
+    return (proxied ? proxiedDownload : directDownload)(downloadUrl);
+}
+
+async function handleUpload(request, pathname, filename) {
+    const url = `https://graph.microsoft.com/v1.0/me/drive/root:${config.base+(pathname.slice(-1) == "/" ? pathname :pathname + "/") }${filename}:/content`;
+    return await fetch(url, {
+        method: "PUT",
+        headers: {
+            "Authorization": `bearer ${await getAccessToken()}`,
+            ...request.headers
+        },
+        body: request.body
+    });
+}
+
+
 async function handleRequest(request) {
+
+    if (config.cache && config.cache.enable) {
+        const maybeResponse = await cache.match(request);
+        if (maybeResponse) return maybeResponse;
+    }
+
     const base = config.base;
     const accessToken = await getAccessToken();
 
     const {
-        pathname
+        pathname,
+        searchParams
     } = new URL(request.url);
+
+    const thumbnail = config.thumbnail ? searchParams.get("thumbnail") : false;
+    const proxied = config.proxyDownload ? (searchParams.get("proxied") === null ? false : true) : false;
+
+
+    if (thumbnail) {
+        const url = `https://graph.microsoft.com/v1.0/me/drive/root:${base+(pathname == "/" ? "" :pathname) }:/thumbnails/0/${thumbnail}/content`;
+        const resp = await fetch(url, {
+            headers: {
+                "Authorization": `bearer ${accessToken}`
+            }
+        });
+
+        return await handleFile(request, pathname, resp.url, {
+            proxied
+        });
+
+    }
 
     const url = `https://graph.microsoft.com/v1.0/me/drive/root:${base+(pathname == "/" ? "" :pathname) }?select=name,eTag,size,id,folder,file,%40microsoft.graph.downloadUrl&expand=children(select%3Dname,eTag,size,id,folder,file)`;
     const resp = await fetch(url, {
@@ -76,18 +249,28 @@ async function handleRequest(request) {
     if (resp.ok) {
         const data = await resp.json();
         if ("file" in data) {
-            return new Response(null, {
-                status: 302,
-                headers: {
-                    "Location": data["@microsoft.graph.downloadUrl"].slice(6)
-                }
+            return await handleFile(request, pathname, data["@microsoft.graph.downloadUrl"], {
+                proxied,
+                fileSize: data["size"]
             });
 
         } else if ("folder" in data) {
+            if (config.upload && request.method == "POST") {
+                const filename = searchParams.get("upload");
+                const key = searchParams.get("key");
+                if (filename && key && config.upload.key == key) {
+                    return await handleUpload(request, pathname, filename);
+                } else {
+                    return new Response(body, {
+                        status: 400
+                    });
+                }
+
+            }
             if (!request.url.endsWith("/")) return Response.redirect(request.url + "/", 302)
             return new Response(renderFolderIndex(data.children, pathname == "/"), {
                 headers: {
-                   'Access-Control-Allow-Origin':'*',
+                    'Access-Control-Allow-Origin': '*',
                     'content-type': 'text/html'
                 }
             });
@@ -99,24 +282,24 @@ async function handleRequest(request) {
     }
 
     if (error) {
-      const body = JSON.stringify(error);
-      switch(error.code){
-        case "ItemNotFound":
-          return new Response(body, {
-              status:404,
-            headers: {
-                'content-type': 'application/json'
-            }
-          });
-        default:
-          return new Response(body, {
-              status:500,
-            headers: {
-                'content-type': 'application/json'
-            }
-          });
-      }
- 
+        const body = JSON.stringify(error);
+        switch (error.code) {
+            case "ItemNotFound":
+                return new Response(body, {
+                    status: 404,
+                    headers: {
+                        'content-type': 'application/json'
+                    }
+                });
+            default:
+                return new Response(body, {
+                    status: 500,
+                    headers: {
+                        'content-type': 'application/json'
+                    }
+                });
+        }
+
     }
 }
 /**
@@ -128,15 +311,15 @@ function renderFolderIndex(items, isIndex) {
     const nav = `<nav><a class="brand">OneDrive Index</a></nav>`;
     const el = (tag, attrs, content) => `<${tag} ${attrs.join(" ")}>${content}</${tag}>`;
     const div = (className, content) => el("div", [`class=${className}`], content);
-    const item = (icon, filename,size) => el("a", [`href="${filename}"`, `class="item"`,size?`size="${size}"`:""], el("i", [`class="material-icons"`], icon) + filename)
+    const item = (icon, filename, size) => el("a", [`href="${filename}"`, `class="item"`, size ? `size="${size}"` : ""], el("i", [`class="material-icons"`], icon) + filename)
 
-    return renderHTML(nav + div("container",div("items", el("div",['style="min-width:600px"'],
+    return renderHTML(nav + div("container", div("items", el("div", ['style="min-width:600px"'],
         (!isIndex ? item("folder", "..") : "") +
         items.map((i) => {
             if ("folder" in i) {
-                return item("folder", i.name,i.size)
+                return item("folder", i.name, i.size)
             } else if ("file" in i) {
-                return item(mime2icon(i.file.mimeType), i.name,i.size)
+                return item(mime2icon(i.file.mimeType), i.name, i.size)
             } else console.log(`unknown item type ${i}`)
         }).join("")
     ))));
@@ -144,7 +327,7 @@ function renderFolderIndex(items, isIndex) {
 
 
 
-function renderHTML(body ) {
+function renderHTML(body) {
     return `<!DOCTYPE html>
   <html lang="en">
     <head>
