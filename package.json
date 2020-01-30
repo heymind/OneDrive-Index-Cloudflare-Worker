@@ -1,6 +1,6 @@
 {
   "name": "onedrive-index-cloudflare-worker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "OneDrive Index ( Cloudflare Worker )",
   "main": "index.js",
   "scripts": {
