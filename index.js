@@ -205,6 +205,11 @@ async function handleUpload(request, pathname, filename) {
     });
 }
 
+function wrap_pathname(pathname) {
+    pathname = config.base + (pathname == "/" ? "" : pathname);
+    return (pathname === "/" || pathname === "") ? "" : ":" + pathname;
+}
+
 
 async function handleRequest(request) {
 
@@ -239,7 +244,7 @@ async function handleRequest(request) {
 
     }
 
-    const url = `https://graph.microsoft.com/v1.0/me/drive/root:${base+(pathname == "/" ? "" :pathname) }?select=name,eTag,size,id,folder,file,%40microsoft.graph.downloadUrl&expand=children(select%3Dname,eTag,size,id,folder,file)`;
+    const url = `https://graph.microsoft.com/v1.0/me/drive/root${ wrap_pathname(pathname) }?select=name,eTag,size,id,folder,file,%40microsoft.graph.downloadUrl&expand=children(select%3Dname,eTag,size,id,folder,file)`;
     const resp = await fetch(url, {
         headers: {
             "Authorization": `bearer ${accessToken}`
