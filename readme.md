@@ -1,4 +1,4 @@
-在原版的基础上实现了加密。用户名和密码在这里指定即可：
+在原版的基础上实现了加密。用户名和密码在 `index.js` 的如下字段指定即可：
 ```
 const NAME = "admin"
 const PASS = "password"
