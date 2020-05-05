@@ -95,8 +95,8 @@ const USER_PASS_REGEXP = /^([^:]*):(.*)$/
  */
 
 const Credentials = function(name, pass) {
-  this.name = name
-  this.pass = pass
+    this.name = name
+    this.pass = pass
 }
 
 /**
@@ -104,54 +104,48 @@ const Credentials = function(name, pass) {
  */
 
 const parseAuthHeader = function(string) {
-  if (typeof string !== 'string') {
-    return undefined
-  }
+    if (typeof string !== 'string') {
+        return undefined
+    }
 
-  // parse header
-  const match = CREDENTIALS_REGEXP.exec(string)
+    // parse header
+    const match = CREDENTIALS_REGEXP.exec(string)
 
-  if (!match) {
-    return undefined
-  }
+    if (!match) {
+        return undefined
+    }
 
-  // decode user pass
-  const userPass = USER_PASS_REGEXP.exec(atob(match[1]))
+    // decode user pass
+    const userPass = USER_PASS_REGEXP.exec(atob(match[1]))
 
-  if (!userPass) {
-    return undefined
-  }
+    if (!userPass) {
+        return undefined
+    }
 
-  // return credentials object
-  return new Credentials(userPass[1], userPass[2])
+    // return credentials object
+    return new Credentials(userPass[1], userPass[2])
 }
 
 
 const unauthorizedResponse = function(body) {
-  return new Response(
-    null, {
-      status: 401,
-      statusText: "'Authentication required.'",
-      body: body,
-      headers: {
-        "WWW-Authenticate": 'Basic realm="User Visible Realm"'
-      }
-    }
-  )
+    return new Response(
+        null, {
+            status: 401,
+            statusText: "'Authentication required.'",
+            body: body,
+            headers: {
+                "WWW-Authenticate": 'Basic realm="User Visible Realm"'
+            }
+        }
+    )
 }
 
 async function handle(request) {
-    if (AUTH_ENABLED == false) {
-        return handleRequest(request)
-    } else if (AUTH_ENABLED == true) {
-        const credentials = parseAuthHeader(request.headers.get("Authorization"))
-        if (!credentials || credentials.name !== NAME || credentials.pass !== PASS) {
-            return unauthorizedResponse("Unauthorized")
-        } else {
-            return handleRequest(request)
-        }
+    const credentials = parseAuthHeader(request.headers.get("Authorization"))
+    if (!credentials || credentials.name !== NAME || credentials.pass !== PASS) {
+        return unauthorizedResponse("Unauthorized")
     } else {
-        console.info("Auth error unexpected.")
+        return handleRequest(request)
     }
 }
 
@@ -246,7 +240,7 @@ async function setCache(request, fileSize, downloadUrl, fallback) {
         return resp;
 
     } else {
-        console.info(`No cache ${request.url} because file_size(${fileSize}) > limit(${chunkedCacheLimit})`);
+        console.info(`No cache ${request.url} because file_size(${fileSize}) > limit(${config.cache.chunkedCacheLimit})`);
         return await fallback(downloadUrl);
     }
 }
