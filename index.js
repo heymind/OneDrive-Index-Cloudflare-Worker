@@ -95,8 +95,8 @@ const USER_PASS_REGEXP = /^([^:]*):(.*)$/
  */
 
 const Credentials = function(name, pass) {
-  this.name = name
-  this.pass = pass
+    this.name = name
+    this.pass = pass
 }
 
 /**
@@ -104,40 +104,40 @@ const Credentials = function(name, pass) {
  */
 
 const parseAuthHeader = function(string) {
-  if (typeof string !== 'string') {
-    return undefined
-  }
+    if (typeof string !== 'string') {
+        return undefined
+    }
 
-  // parse header
-  const match = CREDENTIALS_REGEXP.exec(string)
+    // parse header
+    const match = CREDENTIALS_REGEXP.exec(string)
 
-  if (!match) {
-    return undefined
-  }
+    if (!match) {
+        return undefined
+    }
 
-  // decode user pass
-  const userPass = USER_PASS_REGEXP.exec(atob(match[1]))
+    // decode user pass
+    const userPass = USER_PASS_REGEXP.exec(atob(match[1]))
 
-  if (!userPass) {
-    return undefined
-  }
+    if (!userPass) {
+        return undefined
+    }
 
-  // return credentials object
-  return new Credentials(userPass[1], userPass[2])
+    // return credentials object
+    return new Credentials(userPass[1], userPass[2])
 }
 
 
 const unauthorizedResponse = function(body) {
-  return new Response(
-    null, {
-      status: 401,
-      statusText: "'Authentication required.'",
-      body: body,
-      headers: {
-        "WWW-Authenticate": 'Basic realm="User Visible Realm"'
-      }
-    }
-  )
+    return new Response(
+        null, {
+            status: 401,
+            statusText: "'Authentication required.'",
+            body: body,
+            headers: {
+                "WWW-Authenticate": 'Basic realm="User Visible Realm"'
+            }
+        }
+    )
 }
 
 async function handle(request) {
