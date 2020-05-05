@@ -1,10 +1,3 @@
-在原版的基础上实现了加密。用户名和密码在 `index.js` 的如下字段指定即可：
-```
-const NAME = "admin"
-const PASS = "password"
-```
-
----  
 # OneDrive Index ( Cloudflare Worker )
 
 ## 🌈 演示地址
@@ -23,6 +16,13 @@ const PASS = "password"
 4. 使用这个工具 [microsoft-graph-api-auth](https://heymind.github.io/tools/microsoft-graph-api-auth) 获取 `refresh_token` 参数。
 
 5. 在 `Cloudflare Worker` 管理页面创建一个新的 `Worker` ,粘贴 `index.js` 中的代码并替换相关参数。
+
+6. 访问密码设置：
+
+```
+const NAME = "admin"
+const PASS = "password"
+```
 
 ## 🔥 新特性 V1.1
 

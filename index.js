@@ -231,7 +231,7 @@ async function setCache(request, fileSize, downloadUrl, fallback) {
         return resp;
 
     } else {
-        console.info(`No cache ${request.url} because file_size(${fileSize}) > limit(${chunkedCacheLimit})`);
+        console.info(`No cache ${request.url} because file_size(${fileSize}) > limit(${config.cache.chunkedCacheLimit})`);
         return await fallback(downloadUrl);
     }
 }
