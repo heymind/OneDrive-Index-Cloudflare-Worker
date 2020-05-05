@@ -1,31 +1,38 @@
 <!--
  * @Author: your name
  * @Date: 2020-05-05 14:09:52
- * @LastEditTime: 2020-05-05 14:42:06
- * @LastEditors: your name
+ * @LastEditTime: 2020-05-05 16:32:25
+ * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \OneDrive-Index-Cloudflare-Worker\readme.md
  -->
 # OneDrive Index ( Cloudflare Worker )
 
-## 🌈 演示地址
+## 🌈 Demo / 演示地址 
 
 [storage.idx0.workers.dev](https://storage.idx0.workers.dev)
 
-## 咋用
+## How to use / 咋用
 
 1. 去这里新建一个 APP https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade 
-   `redirect_uri` 设置成 `https://heymind.github.io/tools/microsoft-graph-api-auth` 。
+   `redirect_uri` 设置成 `https://heymind.github.io/tools/microsoft-graph-api-auth` 。  
+   >Creat a new APP here https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade and set
+   `redirect_uri` as `https://heymind.github.io/tools/microsoft-graph-api-auth` 。
 
-2. 在 `Certificates & secrets` 面板创建一个新的 `secret`。
+2. 在 `Certificates & secrets` 面板创建一个新的 `secret`。    
+   >Open `Certificates & secrets` and create a new `secret`。
 
-3. 在 `API permissions` 面板， 添加以下权限 `offline_access, Files.Read, Files.Read.All`。
+3. 在 `API permissions` 面板， 添加以下权限 `offline_access, Files.Read, Files.Read.All`。  
+   >Add permissions `offline_access, Files.Read, Files.Read.All` at `API permissions`
 
-4. 使用这个工具 [microsoft-graph-api-auth](https://heymind.github.io/tools/microsoft-graph-api-auth) 获取 `refresh_token` 参数。
+4. 使用这个工具 [microsoft-graph-api-auth](https://heymind.github.io/tools/microsoft-graph-api-auth) 获取 `refresh_token` 参数。  
+   >Get the value of parameter `refresh_token` using [microsoft-graph-api-auth](https://heymind.github.io/tools/microsoft-graph-api-auth)
 
-5. 在 `Cloudflare Worker` 管理页面创建一个新的 `Worker` ,粘贴 `index.js` 中的代码并替换相关参数。
+5. 在 `Cloudflare Worker` 管理页面创建一个新的 `Worker` ,粘贴 `index.js` 中的代码并替换相关参数。  
+   >Create a new worker on `Cloudflare Worker` and paste the codes in `index.js` and set paramters as you wish.
 
 *6. 访问密码设置（默认关闭）：
+   >Authentication settings (disabled by default):
 
 ```
 const AUTH_ENABLED = true
@@ -33,7 +40,7 @@ const NAME = "admin"
 const PASS = "password"
 ```
 
-## 🔥 新特性 V1.1
+## 🔥 New Features V1.1 / 新特性 V1.1
 
 ### ⏬ 中转下载 
 利用 `Cloudflare` 服务器中转 `OneDrive` 中文件的下载，以提高中国大陆的下载体验。已知问题，无法显示下载进度。
