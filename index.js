@@ -58,6 +58,15 @@ const config = {
     "proxyDownload": true,
 };
 
+/**
+ * Basic authentication.
+ * Disabled by default (Issue #29)
+ * 
+ * AUTH_ENABLED   to enable auth set true
+ * NAME           user name
+ * PASS           password
+ */
+const AUTH_ENABLED = false
 const NAME = "admin"
 const PASS = "password"
 
@@ -132,12 +141,18 @@ const unauthorizedResponse = function(body) {
 }
 
 async function handle(request) {
-  const credentials = parseAuthHeader(request.headers.get("Authorization"))
-  if ( !credentials || credentials.name !== NAME ||  credentials.pass !== PASS) {
-    return unauthorizedResponse("Unauthorized")
-  } else {
-    return handleRequest(request)
-  }
+    if (AUTH_ENABLED == false) {
+        return handleRequest(request)
+    } else if (AUTH_ENABLED == true) {
+        const credentials = parseAuthHeader(request.headers.get("Authorization"))
+        if (!credentials || credentials.name !== NAME || credentials.pass !== PASS) {
+            return unauthorizedResponse("Unauthorized")
+        } else {
+            return handleRequest(request)
+        }
+    } else {
+        console.info("Auth error unexpected.")
+    }
 }
 
 addEventListener('fetch', event => {
