@@ -1,4 +1,15 @@
-# OneDrive Index ( Cloudflare Worker )
+<!--
+ * @Author: your name
+ * @Date: 2020-05-05 14:09:52
+ * @LastEditTime: 2020-05-05 17:18:57
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \OneDrive-Index-Cloudflare-Worker\readme.md
+ -->
+
+中文 | [English](readme.en.md)
+--- 
+# OneDrive Index ( Cloudflare Worker ) 
 
 ## 🌈 演示地址
 
@@ -17,9 +28,10 @@
 
 5. 在 `Cloudflare Worker` 管理页面创建一个新的 `Worker` ,粘贴 `index.js` 中的代码并替换相关参数。
 
-6. 访问密码设置：
+*6. 访问密码设置（默认关闭）：
 
 ```
+const AUTH_ENABLED = true
 const NAME = "admin"
 const PASS = "password"
 ```
