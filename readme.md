@@ -22,7 +22,7 @@
 
 2. 在 `Certificates & secrets` 面板创建一个新的 `secret`。
 
-3. 在 `API permissions` 面板， 添加以下权限 `offline_access, Files.Read, Files.Read.All`。
+3. 在 `API permissions` 面板， 添加以下权限 `offline_access, Files.Read, Files.Read.All`。（此权限可以在Microsoft Graph中找到）
 
 4. 使用这个工具 [microsoft-graph-api-auth](https://heymind.github.io/tools/microsoft-graph-api-auth) 获取 `refresh_token` 参数。
 
