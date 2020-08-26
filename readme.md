@@ -7,6 +7,8 @@
  * @FilePath: \OneDrive-Index-Cloudflare-Worker\readme.md
  -->
 
+DEPRECATED: Please use https://github.com/spencerwooo/onedrive-cf-index instead
+
 中文 | [English](readme.en.md)
 --- 
 # OneDrive Index ( Cloudflare Worker ) 
